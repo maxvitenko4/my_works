@@ -1,0 +1,62 @@
+SELECT oi.order_id, -- замолвення до категорії товару 
+oi.product_id, 
+oi.sale_price, 
+format_date('%Y-%m',date(oi.created_at)) as order_month, 
+p.name AS product_name, 
+p.category, 
+FROM bigquery-public-data.thelook_ecommerce.order_items as oi 
+LEFT JOIN bigquery-public-data.thelook_ecommerce.products AS p 
+ON oi.product_id = p.id limit 1000; 
+
+SELECT --загальна кількість продаж у місяцях 
+format_date('%Y-%m',date(oi.created_at)) as order_month, 
+sum(oi.sale_price) as total 
+FROM bigquery-public-data.thelook_ecommerce.order_items as oi 
+LEFT JOIN bigquery-public-data.thelook_ecommerce.products AS p 
+ON oi.product_id = p.id 
+GROUP BY order_month 
+ORDER BY order_month;
+
+ -- найбільше проданих категорій 
+select p.category, 
+sum(oi.sale_price) as total, 
+format_date('%Y-%m',date(oi.created_at)) as order_month, 
+from bigquery-public-data.thelook_ecommerce.order_items as oi 
+left join bigquery-public-data.thelook_ecommerce.products as p 
+ON oi.product_id = p.id 
+GROUP BY p.category, order_month 
+ORDER BY total desc; 
+
+
+select -- загальна виручка 
+COUNT(DISTINCT order_id) AS orders_count 
+from bigquery-public-data.thelook_ecommerce.orders; 
+
+select -- кількість продаж 
+sum(sale_price) as total_revenue 
+from bigquery-public-data.thelook_ecommerce.order_items; 
+
+select -- кількість клієнтів 
+COUNT(DISTINCT user_id) AS customers_count 
+from bigquery-public-data.thelook_ecommerce.orders; 
+
+select -- виручка по категоріях 
+p.category, 
+sum(oi.sale_price) as total_revenue 
+from bigquery-public-data.thelook_ecommerce.order_items oi 
+left join bigquery-public-data.thelook_ecommerce.products p 
+on oi.product_id = p.id 
+group by p.category 
+order by total_revenue desc; 
+
+select -- виручка по країнах 
+u.country, 
+sum(oi.sale_price) as total_revenue 
+from bigquery-public-data.thelook_ecommerce.order_items oi 
+left join bigquery-public-data.thelook_ecommerce.orders o 
+on oi.order_id = o.order_id 
+left join bigquery-public-data.thelook_ecommerce.users u 
+on o.user_id = u.id 
+group by u.country 
+order by total_revenue desc
+limit 1000;
